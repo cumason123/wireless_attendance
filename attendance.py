@@ -41,7 +41,8 @@ def packet_handler():
 	Takes packets from a queue and outputs it to some filepath
 	"""
 	while True:
-		packets_buffer.get()
+		print('Packet Thread waiting on buffer')
+		packet = packets_buffer.get()
 		print("Gotcha!", list(packet))
 		for layer in packet:
 			if ('identity' in layer.field_names):
@@ -58,11 +59,12 @@ def take_attendance():
 	Logs attendance by sniffing packets on a 802 network and
 	extracting identity headers from corresponding eapol protocol's. 
 	"""
-	packet_handler_thread = Thread()
-	packet_handler_thread.run()
+	packet_handler_thread = Thread(target=packet_handler)
+	packet_handler_thread.start()
 	while True:
 		print("Sniffing for packets")
 		capture.sniff(packet_count=1) # buggy setup separate thread to handle this stuff
+		packets_buffer.put(capture[0])
 		
 
 if __name__ == '__main__':
